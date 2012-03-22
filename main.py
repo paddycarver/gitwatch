@@ -11,8 +11,6 @@ from datetime import datetime, timedelta
 import logging
 import hashlib
 
-curses = ["fuck", "hell", "ass", "damn", "bitch", "shit", "crap", "suck", "piss"]
-
 class MissingParamException(Exception):
         param = None
 
