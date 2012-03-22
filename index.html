@@ -80,7 +80,7 @@
                                                 </div>
                                                 <div class="span11 details">
                                                         <p class="timestamp">{{ commit.timestamp }}</p>
-                                                        <p class="name">{{ commit.author_name }} committed to {{ commit.repository.name }}</p>
+                                                        <p class="name">{% if commit.pusher %}<a href="https://github.com/{{ commit.pusher }}">{% endif %}{{ commit.author_name }}{% if commit.pusher %}</a>{% endif %} committed to <a href="{{ commit.repository.url }}">{{ commit.repository.name }}</a></p>
                                                         <p class="message">{{ commit.summary }}</p>
                                                 </div>
                                         </div>

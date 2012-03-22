@@ -78,6 +78,7 @@ class Commit(db.Model):
         author_name = db.StringProperty(required=True)
         author_email = db.StringProperty(required=True)
         author_hash = db.StringProperty()
+        pusher = db.StringProperty()
         timestamp = db.DateTimeProperty()
         message = db.TextProperty()
         summary = db.StringProperty()
@@ -102,6 +103,10 @@ class Commit(db.Model):
                 author_name = json["author"]["name"]
                 author_email = json["author"]["email"]
                 author_hash = hashlib.md5(json["author"]["email"].strip().lower()).hexdigest()
+                pusher = None
+                if "pusher" in json:
+                        if "name" in json["pusher"]:
+                                pusher = json["pusher"]["name"]
                 timestamp = datetime.now()
                 if "timestamp" in json:
                         offset = None
@@ -134,7 +139,8 @@ class Commit(db.Model):
                 commit = Commit(id=id, url=url, author_name=author_name,
                                 author_email=author_email, timestamp=timestamp,
                                 message=message, summary=summary, added=added,
-                                repository=repo, author_hash=author_hash)
+                                repository=repo, author_hash=author_hash,
+                                pusher=pusher)
                 return commit
 
 class GlobalMetric(db.Model):
@@ -240,6 +246,7 @@ class HookReceiver(webapp.RequestHandler):
                                         "message": cmt.summary,
                                         "repo_name": cmt.repository.name,
                                         "repo_url": cmt.repository.url,
+                                        "pusher": cmt.pusher,
                                         "origin": "commit"
                                 }
                         taskqueue.add(url="/pusher", params=c) 
@@ -257,6 +264,7 @@ class PushWorker(webapp.RequestHandler):
                         message = self.request.get("message")
                         repo_name = self.request.get("repo_name")
                         repo_url = self.request.get("repo_url")
+                        pusher = self.request.get("pusher")
                 
                         u = {
                                 "nature": "commit",
@@ -267,6 +275,7 @@ class PushWorker(webapp.RequestHandler):
                                 "timestamp": timestamp,
                                 "message": message,
                                 "repo_name": repo_name,
+                                "pusher": pusher,
                                 "repo_url": repo_url
                         }
                 elif origin == "metrics":
