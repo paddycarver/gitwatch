@@ -177,8 +177,8 @@ class HookReceiver(webapp.RequestHandler):
 
 class MetricWorker(webapp.RequestHandler):
         def post(self):
-                curses_used = {}
-                total_curses_used = 0
+                curses_used = {} # will be dynamically filled with the curses used
+                total_curses_used = 0 
 
                 commit_id = self.request.get("id")
                 author_email = self.request.get("author_email")
@@ -209,6 +209,7 @@ class MetricWorker(webapp.RequestHandler):
                                         entry = Metric(key=key, count=total_curses_used)
                                 else:
                                         entry.count += total_curses_used
+                        entry.put()
 
                 for curse in curses_used: # Individual curse word metrics
                         global_curse_entry = Metric.all().filter("key = ", "%s_global" % curse).get()
