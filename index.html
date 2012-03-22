@@ -143,12 +143,12 @@ function onMessage(data) {
                 $("#most-active-user").text(data["author"]["desc"][0]["name"]);
                 $("#most-active-user-commits").text(data["author"]["desc"][0]["count"]);
                 active_repo_name = data["repo"]["desc"][0]["url"].split("/");
-                $("#most-active-repo").text(active_repo_name[-1]);
-                $("#most-active-repo-commits").text(data["repo"]["desc"]["count"]);
+                $("#most-active-repo").text(active_repo_name[active_repo_name.length-1]);
+                $("#most-active-repo-commits").text(data["repo"]["desc"][0]["count"]);
                 $("#least-active-user").text(data["author"]["asc"][0]["name"]);
                 $("#least-active-user-commits").text(data["author"]["asc"][0]["count"]);
                 inactive_repo_name = data["repo"]["asc"][0]["url"].split("/");
-                $("#least-active-repo").text(inactive_repo_name[-1]);
+                $("#least-active-repo").text(inactive_repo_name[inactive_repo_name.length-1]);
                 $("#least-active-repo-commits").text(data["repo"]["asc"][0]["count"]);
                 console.log(data);
         }
