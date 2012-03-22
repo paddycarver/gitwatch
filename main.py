@@ -185,7 +185,7 @@ class HookReceiver(webapp.RequestHandler):
                 for commit in body["commits"]:
                         cmt = Commit.fromJSON(repository, commit)
                         taskqueue.add(url="/metric", params={"id": cmt.id, "author_email": cmt.author_email, "repo": cmt.repository.url, 
-                                "num_curses": cmt.num_curses, "message": cmt.message})
+                                "message": cmt.message})
                         cmt.put()
                         repository.last_update = datetime.now()
                         repository.put()
@@ -198,7 +198,6 @@ class MetricWorker(webapp.RequestHandler):
                 commit_id = self.request.get("id")
                 author_email = self.request.get("author_email")
                 repo = self.request.get("repo")
-                num_curses = self.request.get("num_curses")
                 message = self.request.get("message")
                 r = re.compile("[^\w]ass[^\w]|[^\w]asshole[^\w]|[^\w]hell[^\w]|fuck|shit|damn|bitch|bastard", flags=re.IGNORECASE)
                 found_words = r.findall(message)
@@ -211,26 +210,34 @@ class MetricWorker(webapp.RequestHandler):
                                 curses_used[word] = 1
                 total_curses_used = len(found_words)
 
+                updated_entries = []
+
                 if total_curses_used > 0:
-                        Commit.all().filter("id = ", commit_id).get().num_curses = total_curses_used
+                        cmt = Commit.all().filter("id =", commit_id).get()
+                        cmt.num_curses = total_curses_used
+                        updated_entries.append(cmt)
 
                 keys_to_check = ["commits_global", "commits_author_%s" % author_email, "commits_repo_%s" % repo,
                                 "curses_global", "curses_author_%s" % author_email, "curses_repo_%s" % repo]
 
-                updated_entries = []
                 for key in keys_to_check:
                         entry = memcache.get(key)
                         if not entry:
-                                entry = Metric.all().filter("id = ", key).get()
-                        if "commit" in key:
+                                logging.info("checking datastore")
+                                entry = Metric.all().filter("id =", key).get()
+                        if key[1] == "o":
                                 if not entry:
+                                        logging.info("o: creating a new metric for %s" % key)
                                         entry = Metric(id=key, count=1)
                                 else:
+                                        logging.info("o: %s exists" % key)
                                         entry.count += 1
-                        elif "curse" in key:
+                        elif key[1] == "u":
                                 if not entry:
+                                        logging.info("u: creating a new metric for %s" % key)
                                         entry = Metric(id=key, count=total_curses_used)
                                 else:
+                                        logging.info("u: %s exists" % key)
                                         entry.count += total_curses_used
                         updated_entries.append(entry)
                         memcache.set(key, entry)
@@ -238,7 +245,7 @@ class MetricWorker(webapp.RequestHandler):
                 for curse in curses_used: # Individual curse word metrics
                         global_curse_entry = memcache.get("%s_global" % curse)
                         if not global_curse_entry:
-                                global_curse_entry = Metric.all().filter("id = ", "%s_global" % curse).get()
+                                global_curse_entry = Metric.all().filter("id =", "%s_global" % curse).get()
                         if not global_curse_entry:
                                 global_curse_entry = Metric(id="%s_global" % curse, count=curses_used[curse])
                         else:
@@ -248,7 +255,7 @@ class MetricWorker(webapp.RequestHandler):
 
                         author_curse_entry = memcache.get("%s_author_%s" % (curse, author_email))
                         if not author_curse_entry:
-                                author_curse_entry = Metric.all().filter("id = ", "%s_author_%s" % (curse, author_email)).get()
+                                author_curse_entry = Metric.all().filter("id =", "%s_author_%s" % (curse, author_email)).get()
                         if not author_curse_entry:
                                 author_curse_entry = Metric(id="%s_author_%s" % (curse, author_email), count=curses_used[curse])
                         else:
