@@ -6,7 +6,7 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 
 class MissingParamException(Exception):
@@ -105,6 +105,14 @@ class Commit(db.Model):
                                                 "+")[0]
                         timestamp = datetime.strptime(json["timestamp"],
                                 "%Y-%m-%dT%H:%M:%S")
+                        hours = int(offset[1].split(":")[0])
+                        minutes = int(offset[1].split(":")[1])
+                        if offset[0] == "+":
+                                timestamp = timestamp + timedelta(hours=hours, 
+                                                minutes=minutes)
+                        else:
+                                timestamp = timestamp - timedelta(minutes=minutes,
+                                                hours=hours)
                 message = None
                 summary = None
                 if "message" in json:
