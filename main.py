@@ -137,7 +137,7 @@ class Commit(db.Model):
 class GlobalMetric(db.Model):
         nature = db.StringProperty() # commit or curse
         count = db.IntegerProperty()
-
+       
 class RepoMetric(db.Model):
         url = db.StringProperty()
         count = db.IntegerProperty()
@@ -222,7 +222,6 @@ class MetricWorker(webapp.RequestHandler):
                         cmt = Commit.all().filter("id =", commit_id).get()
                         cmt.num_curses = total_curses_used
                         updated_entries.append(cmt)
-
 
                 query = GlobalMetric.all().filter("nature = ", "commit").get()
                 if not query:
