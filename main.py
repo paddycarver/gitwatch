@@ -199,7 +199,9 @@ class ApproveRepo(webapp.RequestHandler):
 
 class HookReceiver(webapp.RequestHandler):
         def post(self):
-                body = simplejson.loads(self.request.body)
+                logging.info(self.request.body)
+                logging.info(self.request.get("payload"))
+                body = simplejson.loads(self.request.get("payload"))
                 repository = Repository.all().filter("url =", body["repository"]["url"]).get()
                 if not repository:
                         repository = Repository.fromJSON(body["repository"])
