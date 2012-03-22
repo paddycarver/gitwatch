@@ -169,7 +169,7 @@ class HookReceiver(webapp.RequestHandler):
                         repository.put()
                 for commit in body["commits"]:
                         cmt = Commit.fromJSON(repository, commit)
-                        taskqueue.add(url="/metric", params={"author_email": cmt.author_email, "repo": cmt.repository, 
+                        taskqueue.add(url="/metric", params={"id": cmt.id, "author_email": cmt.author_email, "repo": cmt.repository, 
                                 "num_curses": cmt.num_curses, "message": cmt.message})
                         cmt.put()
                         repository.last_update = datetime.now()
@@ -180,6 +180,7 @@ class MetricWorker(webapp.RequestHandler):
                 curses_used = {}
                 total_curses_used = 0
 
+                commit_id = self.request.get("id")
                 author_email = self.request.get("author_email")
                 repo = self.request.get("repo")
                 num_curses = self.request.get("num_curses")
@@ -190,19 +191,24 @@ class MetricWorker(webapp.RequestHandler):
                                 curses_used[curse] = message.count(curse)
                                 total_curses_used += 1
 
-                commits_global_entry = Metric.all().filter("key = ", "commits_global").get()
-                if not commits_global_entry:
-                        commits_global_entry = Metric(key="commits_global", count=0)
-                else:
-                        commits_global_entry.count += 1
-                commits_global_entry.put()
+                if total_curses_used > 0:
+                        Commit.all().filter("id = ", commit_id).get().num_curses = total_curses_used
 
-                curses_global_entry = Metric.all().filter("key = ", "curses_global").get()
-                if not curses_global_entry:
-                        curses_global_entry = Metric(key="curses_global", count=total_curses_used)
-                else:
-                        curses_global_entry.count += total_curses_used
-                curses_global_entry.put()
+                keys_to_check = ["commits_global", "commits_author_%s" % author_email, "commits_repo_%s" % repo,
+                                "curses_global", "curses_author_%s" % author_email, "curses_repo_%s" % repo]
+
+                for key in keys_to_check:
+                        entry = Metric.all().filter("key = ", key).get()
+                        if "commit" in key:
+                                if not entry:
+                                        entry = Metric(key=key, count=1)
+                                else:
+                                        entry.count += 1
+                        elif "curse" in key:
+                                if not entry:
+                                        entry = Metric(key=key, count=total_curses_used)
+                                else:
+                                        entry.count += total_curses_used
 
                 for curse in curses_used: # Individual curse word metrics
                         global_curse_entry = Metric.all().filter("key = ", "%s_global" % curse).get()
