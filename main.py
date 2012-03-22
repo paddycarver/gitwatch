@@ -1,5 +1,6 @@
 from google.appengine.api import channel
 from google.appengine.api import memcache
+from google.appengine.api import taskqueue
 from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
@@ -9,6 +10,8 @@ import time
 from datetime import datetime, timedelta
 import logging
 import hashlib
+
+curses = ["fuck", "hell", "ass", "damn", "bitch", "shit", "crap", "suck", "piss"]
 
 class MissingParamException(Exception):
         param = None
@@ -131,6 +134,10 @@ class Commit(db.Model):
                                 repository=repo)
                 return commit
 
+class Metric(db.Model):
+        id = db.StringProperty()
+        count = db.IntegerProperty()
+
 class MainPage(webapp.RequestHandler):
         def get(self):
                 now = time.time()
@@ -156,6 +163,19 @@ class MainPage(webapp.RequestHandler):
 
                 self.response.out.write(template.render('index.html', template_values))
 
+class AdminPage(webapp.RequestHandler):
+        def get(self):
+                repos = Repository.all().filter("approved = ", False).fetch(1000)
+                self.response.out.write(template.render("admin.html", {"repos": repos}))
+
+class ApproveRepo(webapp.RequestHandler):
+        def post(self, repo_key):
+                logging.info(repo_key)
+                repo = Repository.get(db.Key(repo_key))
+                repo.approved = True
+                repo.put()
+
+
 class HookReceiver(webapp.RequestHandler):
         def post(self):
                 body = simplejson.loads(self.request.body)
@@ -165,12 +185,91 @@ class HookReceiver(webapp.RequestHandler):
                         repository.put()
                 for commit in body["commits"]:
                         cmt = Commit.fromJSON(repository, commit)
+                        taskqueue.add(url="/metric", params={"id": cmt.id, "author_email": cmt.author_email, "repo": cmt.repository.url, 
+                                "num_curses": cmt.num_curses, "message": cmt.message})
                         cmt.put()
                         repository.last_update = datetime.now()
                         repository.put()
 
+class MetricWorker(webapp.RequestHandler):
+        def post(self):
+                curses_used = {} # will be dynamically filled with the curses used
+                total_curses_used = 0 
+
+                commit_id = self.request.get("id")
+                author_email = self.request.get("author_email")
+                repo = self.request.get("repo")
+                num_curses = self.request.get("num_curses")
+                message = self.request.get("message")
+
+                for curse in curses:
+                        if curse in message:
+                                curses_used[curse] = message.count(curse)
+                                total_curses_used += 1
+
+                if total_curses_used > 0:
+                        Commit.all().filter("id = ", commit_id).get().num_curses = total_curses_used
+
+                keys_to_check = ["commits_global", "commits_author_%s" % author_email, "commits_repo_%s" % repo,
+                                "curses_global", "curses_author_%s" % author_email, "curses_repo_%s" % repo]
+
+                updated_entries = []
+                for key in keys_to_check:
+                        entry = memcache.get(key)
+                        if not entry:
+                                entry = Metric.all().filter("id = ", key).get()
+                        if "commit" in key:
+                                if not entry:
+                                        entry = Metric(id=key, count=1)
+                                else:
+                                        entry.count += 1
+                        elif "curse" in key:
+                                if not entry:
+                                        entry = Metric(id=key, count=total_curses_used)
+                                else:
+                                        entry.count += total_curses_used
+                        updated_entries.append(entry)
+                        memcache.set(key, entry)
+
+                for curse in curses_used: # Individual curse word metrics
+                        global_curse_entry = memcache.get("%s_global" % curse)
+                        if not global_curse_entry:
+                                global_curse_entry = Metric.all().filter("id = ", "%s_global" % curse).get()
+                        if not global_curse_entry:
+                                global_curse_entry = Metric(id="%s_global" % curse, count=curses_used[curse])
+                        else:
+                                global_curse_entry.count += curses_used[curse]
+                        updated_entries.append(global_curse_entry)
+                        memcache.set("%s_global" % curse, global_curse_entry)
+
+                        author_curse_entry = memcache.get("%s_author_%s" % (curse, author_email))
+                        if not author_curse_entry:
+                                author_curse_entry = Metric.all().filter("id = ", "%s_author_%s" % (curse, author_email)).get()
+                        if not author_curse_entry:
+                                author_curse_entry = Metric(id="%s_author_%s" % (curse, author_email), count=curses_used[curse])
+                        else:
+                                author_curse_entry.count += curses_used[curse]
+                        updated_entries.append(author_curse_entry)
+                        memcache.set("%s_author_%s" % (curse, author_email), author_curse_entry)
+
+                        repo_curse_entry = memcache.get("%s_repo_%s" % (curse, repo))
+                        if not repo_curse_entry:
+                                repo_curse_entry = Metric.all().filter("id = ", "%s_repo_%s" % (curse, repo)).get()
+                        if not repo_curse_entry:
+                                repo_curse_entry = Metric(id="%s_repo_%s" % (curse, repo), count=curses_used[curse])
+                        else:
+                                repo_curse_entry.count += curses_used[curse]
+                        updated_entries.append(repo_curse_entry)
+                        memcache.set("%s_repo_%s" % (curse, repo), repo_curse_entry)
+
+                db.put(updated_entries)
+
+
 application = webapp.WSGIApplication([
+        ('/metric', MetricWorker),
         ('/github', HookReceiver),
+        ('/admin', AdminPage),
+        ('/approve/([^/]+)', ApproveRepo),
         ('/', MainPage)
         ])
 
