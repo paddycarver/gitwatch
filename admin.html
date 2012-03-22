@@ -1,0 +1,12 @@
+<html>
+    <head></head>
+    <body>
+        <ul>
+            {% for repo in repos %}
+            <li>{{ repo.name }}</li>
+            <li>{{ repo.url }}</li>
+            <li>/approve/{{ repo.key }}</li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>

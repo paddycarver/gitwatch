@@ -160,6 +160,19 @@ class MainPage(webapp.RequestHandler):
 
                 self.response.out.write(template.render('index.html', template_values))
 
+class AdminPage(webapp.RequestHandler):
+        def get(self):
+                repos = Repository.all().filter("approved = ", False).fetch(1000)
+                self.response.out.write(template.render("admin.html", {"repos": repos}))
+
+class ApproveRepo(webapp.RequestHandler):
+        def post(self, repo_key):
+                logging.info(repo_key)
+                repo = Repository.get(db.Key(repo_key))
+                repo.approved = True
+                repo.put()
+
+
 class HookReceiver(webapp.RequestHandler):
         def post(self):
                 body = simplejson.loads(self.request.body)
@@ -199,7 +212,8 @@ class MetricWorker(webapp.RequestHandler):
 
                 updated_entries = []
                 for key in keys_to_check:
-                        if not memcache.get(key):
+                        entry = memcache.get(key)
+                        if not entry:
                                 entry = Metric.all().filter("id = ", key).get()
                         if "commit" in key:
                                 if not entry:
@@ -215,7 +229,8 @@ class MetricWorker(webapp.RequestHandler):
                         memcache.set(key, entry)
 
                 for curse in curses_used: # Individual curse word metrics
-                        if not memcache.get("%s_global" % curse):
+                        global_curse_entry = memcache.get("%s_global" % curse)
+                        if not global_curse_entry:
                                 global_curse_entry = Metric.all().filter("id = ", "%s_global" % curse).get()
                         if not global_curse_entry:
                                 global_curse_entry = Metric(id="%s_global" % curse, count=curses_used[curse])
@@ -224,7 +239,8 @@ class MetricWorker(webapp.RequestHandler):
                         updated_entries.append(global_curse_entry)
                         memcache.set("%s_global" % curse, global_curse_entry)
 
-                        if not memcache.get("%s_author_%s" % (curse, author_email)):
+                        author_curse_entry = memcache.get("%s_author_%s" % (curse, author_email))
+                        if not author_curse_entry:
                                 author_curse_entry = Metric.all().filter("id = ", "%s_author_%s" % (curse, author_email)).get()
                         if not author_curse_entry:
                                 author_curse_entry = Metric(id="%s_author_%s" % (curse, author_email), count=curses_used[curse])
@@ -233,7 +249,8 @@ class MetricWorker(webapp.RequestHandler):
                         updated_entries.append(author_curse_entry)
                         memcache.set("%s_author_%s" % (curse, author_email), author_curse_entry)
 
-                        if not memcache.get("%s_repo_%s" % (curse, repo)):
+                        repo_curse_entry = memcache.get("%s_repo_%s" % (curse, repo))
+                        if not repo_curse_entry:
                                 repo_curse_entry = Metric.all().filter("id = ", "%s_repo_%s" % (curse, repo)).get()
                         if not repo_curse_entry:
                                 repo_curse_entry = Metric(id="%s_repo_%s" % (curse, repo), count=curses_used[curse])
@@ -248,6 +265,8 @@ class MetricWorker(webapp.RequestHandler):
 application = webapp.WSGIApplication([
         ('/metric', MetricWorker),
         ('/github', HookReceiver),
+        ('/admin', AdminPage),
+        ('/approve/([^/]+)', ApproveRepo),
         ('/', MainPage)
         ])
 
