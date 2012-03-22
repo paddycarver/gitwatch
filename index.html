@@ -176,9 +176,6 @@ function addCommit(hash, timestamp, name, repo, message, profile, url) {
         var paddingBottom = $("#commits").css("padding-bottom");
         paddingBottom = paddingBottom.substr(0, paddingBottom.length - 2);
 
-        //if($("#commits .commit").length > 9) {
-        //        $("#commits").css("height", h);
-        //}
         if(profile) {
                 name = "<a href=\"https://github.com/" + profile + "\">"+name+"</a>";
         }
@@ -191,7 +188,6 @@ function addCommit(hash, timestamp, name, repo, message, profile, url) {
         $("#commits .commit:first").css("position", "relative");
         $("#commits .commit:first").css("top", 0-paddingTop);
         $("#commits .commit:last").css("position", "relative");
-        //$("#commits").animate({height: h + heightDiff}, 1500);
 
         $("#commits .commit:first").animate({top: 0}, 250, function() {
                 $("#commits .commit:first").animate({marginTop: oldMarginTop}, 1000, function() {
