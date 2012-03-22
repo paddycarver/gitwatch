@@ -280,10 +280,22 @@ class PushWorker(webapp.RequestHandler):
                                 "repo_url": repo_url
                         }
                 elif origin == "metrics":
+                        authors_desc = AuthorMetric.all().filter("nature =", "commit").order("-count").fetch(10)
+                        authors_asc = AuthorMetric.all().filter("nature =", "commit").order("count").fetch(10)
+                        repo_desc = RepoMetric.all().filter("nature =", "commit").order("-count").fetch(10)
+                        repo_asc = RepoMetric.all().filter("nature =", "commit").order("count").fetch(10)
                         u = {
                                 "nature": "metrics",
                                 "global_commits": self.request.get("global_commits"),
-                                "global_curses": self.request.get("global_curses")
+                                "global_curses": self.request.get("global_curses"),
+                                "author": {
+                                        "desc": authors_desc,
+                                        "asc": authors_asc
+                                },
+                                "repo": {
+                                        "desc": repos_desc,
+                                        "asc": repos_asc
+                                }
                         }
                 if u is not None:
                         tokens = memcache.get("tokens")
