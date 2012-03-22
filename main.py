@@ -154,6 +154,8 @@ class HookReceiver(webapp.RequestHandler):
                 for commit in body["commits"]:
                         cmt = Commit.fromJSON(repository, commit)
                         cmt.put()
+                        repository.last_update = datetime.now()
+                        repository.put()
 
 application = webapp.WSGIApplication([
         ('/github', HookReceiver),
