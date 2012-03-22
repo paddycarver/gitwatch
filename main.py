@@ -197,8 +197,10 @@ class MetricWorker(webapp.RequestHandler):
                 keys_to_check = ["commits_global", "commits_author_%s" % author_email, "commits_repo_%s" % repo,
                                 "curses_global", "curses_author_%s" % author_email, "curses_repo_%s" % repo]
 
+                updated_entries = []
                 for key in keys_to_check:
-                        entry = Metric.all().filter("id = ", key).get()
+                        if not memcache.get(key):
+                                entry = Metric.all().filter("id = ", key).get()
                         if "commit" in key:
                                 if not entry:
                                         entry = Metric(id=key, count=1)
@@ -209,29 +211,38 @@ class MetricWorker(webapp.RequestHandler):
                                         entry = Metric(id=key, count=total_curses_used)
                                 else:
                                         entry.count += total_curses_used
-                        entry.put()
+                        updated_entries.append(entry)
+                        memcache.set(key, entry)
 
                 for curse in curses_used: # Individual curse word metrics
-                        global_curse_entry = Metric.all().filter("id = ", "%s_global" % curse).get()
+                        if not memcache.get("%s_global" % curse):
+                                global_curse_entry = Metric.all().filter("id = ", "%s_global" % curse).get()
                         if not global_curse_entry:
                                 global_curse_entry = Metric(id="%s_global" % curse, count=curses_used[curse])
                         else:
                                 global_curse_entry.count += curses_used[curse]
-                        global_curse_entry.put()
+                        updated_entries.append(global_curse_entry)
+                        memcache.set("%s_global" % curse, global_curse_entry)
 
-                        author_curse_entry = Metric.all().filter("id = ", "%s_author_%s" % (curse, author_email)).get()
+                        if not memcache.get("%s_author_%s" % (curse, author_email)):
+                                author_curse_entry = Metric.all().filter("id = ", "%s_author_%s" % (curse, author_email)).get()
                         if not author_curse_entry:
                                 author_curse_entry = Metric(id="%s_author_%s" % (curse, author_email), count=curses_used[curse])
                         else:
                                 author_curse_entry.count += curses_used[curse]
-                        author_curse_entry.put()
+                        updated_entries.append(author_curse_entry)
+                        memcache.set("%s_author_%s" % (curse, author_email), author_curse_entry)
 
-                        repo_curse_entry = Metric.all().filter("id = ", "%s_repo_%s" % (curse, repo)).get()
+                        if not memcache.get("%s_repo_%s" % (curse, repo)):
+                                repo_curse_entry = Metric.all().filter("id = ", "%s_repo_%s" % (curse, repo)).get()
                         if not repo_curse_entry:
                                 repo_curse_entry = Metric(id="%s_repo_%s" % (curse, repo), count=curses_used[curse])
                         else:
                                 repo_curse_entry.count += curses_used[curse]
-                        repo_curse_entry.put()
+                        updated_entries.append(repo_curse_entry)
+                        memcache.set("%s_repo_%s" % (curse, repo), repo_curse_entry)
+
+                db.put(updated_entries)
 
 
 application = webapp.WSGIApplication([
