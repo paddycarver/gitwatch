@@ -1,5 +1,6 @@
 from google.appengine.api import channel
 from google.appengine.api import memcache
+from google.appengine.api import taskqueue
 from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
@@ -119,6 +120,10 @@ class Commit(db.Model):
                                 repository=repo)
                 return commit
 
+class Metric(db.Model):
+        key = db.StringProperty()
+        count = db.IntegerProperty()
+
 class MainPage(webapp.RequestHandler):
         def get(self):
                 now = time.time()
@@ -153,9 +158,15 @@ class HookReceiver(webapp.RequestHandler):
                         repository.put()
                 for commit in body["commits"]:
                         cmt = Commit.fromJSON(repository, commit)
+                        taskqueue.add(url="/metric", params={"author_email": cmt.author_email, "repo": cmt.repository})
                         cmt.put()
 
+class MetricWorker(webapp.RequestHandler):
+        def post(self):
+                pass
+
 application = webapp.WSGIApplication([
+        ('/metric')
         ('/github', HookReceiver),
         ('/', MainPage)
         ])
