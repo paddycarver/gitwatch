@@ -81,7 +81,7 @@
                                                 <div class="span11 details">
                                                         <p class="timestamp">{{ commit.timestamp }}</p>
                                                         <p class="name">{% if commit.pusher %}<a href="https://github.com/{{ commit.pusher }}">{% endif %}{{ commit.author_name }}{% if commit.pusher %}</a>{% endif %} committed to <a href="{{ commit.repository.url }}">{{ commit.repository.name }}</a></p>
-                                                        <p class="message">{{ commit.summary }}</p>
+                                                        <p class="message"><a href="{{ commit.url }}">{{ commit.summary }}</a></p>
                                                 </div>
                                         </div>
                                 </div>
@@ -136,7 +136,7 @@ function onMessage(data) {
         console.log("Message: "+JSON.stringify(data));
         data = JSON.parse(data['data'])
         if(data["nature"] == "commit") {
-                addCommit(data["author_hash"], data["timestamp"], data["author_name"], "<a href=\""+data["repo_url"]+"\">"+data["repo_name"]+"</a>", data["message"]);
+                addCommit(data["author_hash"], data["timestamp"], data["author_name"], "<a href=\""+data["repo_url"]+"\">"+data["repo_name"]+"</a>", data["message"], data["pusher"], data["url"]);
         } else if(data["nature"] == "metrics") {
                 commitCounter.incrementTo(data["global_commits"]);
                 cursesCounter.incrementTo(data["global_curses"]);
@@ -151,7 +151,7 @@ function onClose() {
         console.log("CLOSED");
 }
 
-function addCommit(hash, timestamp, name, repo, message) {
+function addCommit(hash, timestamp, name, repo, message, profile, url) {
         //if($("#commits .commit").length > 9) {
                 $("#commits").css("overflow-y", "hidden");
                 $("#commits").css("overflow-x", "visible");
@@ -169,7 +169,10 @@ function addCommit(hash, timestamp, name, repo, message) {
         //if($("#commits .commit").length > 9) {
         //        $("#commits").css("height", h);
         //}
-        commitElem = "<div class=\"commit container-fluid\"><div class=\"row-fluid\"><div class=\"span1\"><img src=\"https://secure.gravatar.com/avatar/"+hash+"?s=50\" class=\"avatar\" /></div><div class=\"span11 details\"><p class=\"timestamp\">"+timestamp+"</p><p class=\"name\">"+name+" committed to "+repo+"</p><p class=\"message\">"+message+"</p></div></div</div>";
+        if(profile) {
+                name = "<a href=\"https://github.com/" + profile + "\">"+name+"</a>";
+        }
+        commitElem = "<div class=\"commit container-fluid\"><div class=\"row-fluid\"><div class=\"span1\"><img src=\"https://secure.gravatar.com/avatar/"+hash+"?s=50\" class=\"avatar\" /></div><div class=\"span11 details\"><p class=\"timestamp\">"+timestamp+"</p><p class=\"name\">"+name+" committed to "+repo+"</p><p class=\"message\"><a href=\""+url+"\">"+message+"</a></p></div></div></div>";
         $("#commits").prepend(commitElem);
         var heightDiff = $("#commits .commit:first").outerHeight() - $("#commits .commit:last").outerHeight();
         var oldMarginTop = $("#commits .commit:first").css("margin-top");
