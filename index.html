@@ -293,7 +293,7 @@ function genAuthorGraph() {
         var xticks = new Array();
         for(i = 0; i < authorDescData.length; i++) {
                 data[i] = [i, authorDescData[i].count];
-                ticks[i] = [i, authorDescData[i].name];
+                xticks[i] = [i, authorDescData[i].name];
         }
         plot.setData(data);
         var options = {
@@ -311,7 +311,7 @@ function genRepoGraph() {
         var xticks = new Array();
         for(i = 0; i < repoDescData.length; i++) {
                 data[i] = [i, repoDescData[i].count];
-                ticks[i] = [i, repoDescData[i].name];
+                xticks[i] = [i, repoDescData[i].name];
         }
         plot.setData(data);
         var options = {
