@@ -32,10 +32,12 @@
                                                         </ul>
                                                         <ul class="nav pull-right">
                                                                 <li><select data-placeholder="Filter commits" style="width: 350px; height: 30px; margin-top: 5px;" multiple id="filterselect">
-                                                                                <option value="paddy">paddy</option>
-                                                                                <option value="nick">nick</option>
-                                                                                <option value="ubhacking">ubhacking</option>
-                                                                                <option value="gitwatch">gitwatch</option>
+                                                                                {% for author in authors_desc %}
+                                                                                <option value="{{ author.email }}">{{ author.name }}</option>
+                                                                                {% endfor %}
+                                                                                {% for repo in repos_desc %}
+                                                                                <option value={{ repo.name }}">{{ repo.name }}</option>
+                                                                                {% endfor %}
                                                                                 <option value="no_profanity">no profanity</option>
                                                                                 <option value="only_profanity">only profanity</option>
                                                                 </select></li>
@@ -109,13 +111,13 @@
                                                 <div class="flip-counter" id="curses-counter"></div>
                                         </div>
                                         <h2>Most Active User</h2>
-                                        <h3><span id="most-active-user">Paddy</span>: <span id="most-active-user-commits">100</span> Commits</h3>
+                                        <h3><span id="most-active-user">{{ authors_desc.0.name }}</span>: <span id="most-active-user-commits">{{ authors_desc.0.count }}</span> Commits</h3>
                                         <h2>Most Active Repo</h2>
-                                        <h3><span id="most-active-repo">GitWatch</span>: <span id="most-active-repo-commits">1000</span> Commits</h3>
+                                        <h3><span id="most-active-repo">{{ repos_desc.0.name }}</span>: <span id="most-active-repo-commits">{{ repos_desc.0.count }}</span> Commits</h3>
                                         <h2>Least Active User</h2>
-                                        <h3><span id="least-active-user">Paddy</span>: <span id="least-active-user-commits">10</span> Commits</h3>
+                                        <h3><span id="least-active-user">{{ authors_asc.0.name }}</span>: <span id="least-active-user-commits">{{ authors_asc.0.count }}</span> Commits</h3>
                                         <h2>Least Active Repo</h2>
-                                        <h3><span id="least-active-repo">UBHacking</span>: <span id="least-active-repo-commits">100</span> Commits</h3>
+                                        <h3><span id="least-active-repo">{{ repos_asc.0.name }}</span>: <span id="least-active-repo-commits">{{ repos_asc.0.count }}</span> Commits</h3>
                                 </div>
                         </div>
                 </div>
