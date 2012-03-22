@@ -1,0 +1,20 @@
+indexes:
+
+- kind: AuthorMetric
+  properties:
+    - name: nature
+    - name: count
+      direction: desc
+- kind: AuthorMetric
+  properties:
+    - name: nature
+    - name: count
+- kind: RepoMetric
+  properties:
+    - name: nature
+    - name: count
+      direction: desc
+- kind: RepoMetric
+  properties:
+    - name: nature
+    - name: count
