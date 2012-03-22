@@ -43,6 +43,8 @@
                                                 </div>
                                         </div>
                                 </div>
+                                <div id="commits">
+                                {% ifequal page "admin" %}
                                 {% if repos %}
                                 {% for repo in repos %}
                                 <div class="commit container-fluid">
@@ -61,17 +63,40 @@
                                 {% else %}
                                 <div class="commit container-fluid">
                                         <div class="row-fluid">
-                                                <div class="span1">
-                                                        <img src="https://secure.gravatar.com/avatar/ce539e18df8adc26ecddf0e0273ee3d8?s=50" class="avatar" />
-                                                </div>
-                                                <div class="span11 details">
-                                                        <p class="timestamp">Yesterday</p>
-                                                        <p class="name">Paddy Foran committed to Repo</p>
-                                                        <p class="message">Another commit goes here</p>
+                                                <div class="span12 details">
+                                                        <h2>No Unapproved Repos</h2>
                                                 </div>
                                         </div>
                                 </div>
                                 {% endif %}
+                                {% endifequal %}
+                                {% ifequal page "main" %}
+                                {% if commits %}
+                                {% for commit in commits %}
+                                <div class="commit container-fluid">
+                                        <div class="row-fluid">
+                                                <div class="span1">
+                                                        <img src="https://secure.gravatar.com/avatar/{{ commit.author_hash }}?s=50" class="avatar" />
+                                                </div>
+                                                <div class="span11 details">
+                                                        <p class="timestamp">{{ commit.timestamp }}</p>
+                                                        <p class="name">{{ commit.author_name }} committed to {{ commit.repository.name }}</p>
+                                                        <p class="message">{{ commit.summary }}</p>
+                                                </div>
+                                        </div>
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <div class="commit container-fluid">
+                                        <div class="row-fluid">
+                                                <div class="span12 details">
+                                                        <h2>No Commits</h2>
+                                                </div>
+                                        </div>
+                                </div>
+                                {% endif %}
+                                {% endifequal %}
+                                </div>
                         </div>
                         <div class="span3">
                                 <div class="statsbar">
@@ -119,6 +144,48 @@ function onClose() {
         console.log("CLOSED");
 }
 
+function addCommit(hash, timestamp, name, repo, message) {
+        //if($("#commits .commit").length > 9) {
+                $("#commits").css("overflow-y", "hidden");
+                $("#commits").css("overflow-x", "visible");
+        //} else {
+        //        $("#commits").css("overflow", "visible");
+        //}
+
+        var h = $("#commits").height();
+
+        var paddingTop = $("#commits").css("padding-top");
+        paddingTop = paddingTop.substr(0, paddingTop.length - 2);
+        var paddingBottom = $("#commits").css("padding-bottom");
+        paddingBottom = paddingBottom.substr(0, paddingBottom.length - 2);
+
+        //if($("#commits .commit").length > 9) {
+        //        $("#commits").css("height", h);
+        //}
+        commitElem = "<div class=\"commit container-fluid\"><div class=\"row-fluid\"><div class=\"span1\"><img src=\"https://secure.gravatar.com/avatar/"+hash+"?s=50\" class=\"avatar\" /></div><div class=\"span11 details\"><p class=\"timestamp\">"+timestamp+"</p><p class=\"name\">"+name+" committed to "+repo+"</p><p class=\"message\">"+message+"</p></div></div</div>";
+        $("#commits").prepend(commitElem);
+        var heightDiff = $("#commits .commit:first").outerHeight() - $("#commits .commit:last").outerHeight();
+        var oldMarginTop = $("#commits .commit:first").css("margin-top");
+
+        $("#commits .commit:first").css("margin-top", 0 - $("#commits .commit:first").outerHeight());
+        $("#commits .commit:first").css("position", "relative");
+        $("#commits .commit:first").css("top", 0-paddingTop);
+        $("#commits .commit:last").css("position", "relative");
+        //$("#commits").animate({height: h + heightDiff}, 1500);
+
+        $("#commits .commit:first").animate({top: 0}, 250, function() {
+                $("#commits .commit:first").animate({marginTop: oldMarginTop}, 1000, function() {
+                        $("#commits .commit:last").animate({top: paddingBottom}, 250, function() {
+                                if($("#commits .commit").length > 10) {
+                                        $("#commits .commit:last").remove();
+                                }
+                                $("#commits").css("height", "auto");
+                                $("#commits").css("overflow", "visible");
+                        });
+                });
+        });
+}
+
 var commitCounter;
 var cursesCounter;
 
@@ -139,6 +206,7 @@ $(function() {
                 $.post($(this).attr("href"));
         });
         {% endif %}
+        
 });
 </script>
 

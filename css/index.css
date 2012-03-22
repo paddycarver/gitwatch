@@ -7009,15 +7009,6 @@ a.thumbnail:hover {
 .details > .name {
   font-size: 16.25px;
 }
-.avatar,
-.commit {
-  -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
-  -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
-  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
-  -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
-  -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
-  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
-}
 .counterwrapper {
   float: right;
   position: relative;

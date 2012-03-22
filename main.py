@@ -160,14 +160,21 @@ class MainPage(webapp.RequestHandler):
                 valid_tokens.append((req_id, new_token, expires))
                 memcache.set("tokens", valid_tokens)
 
-                template_values = {"token": new_token}
+                commits = Commit.all().order("-timestamp").fetch(1000)
+                approved_commits = []
+                for commit in commits:
+                        if commit.repository.approved:
+                                approved_commits.append(commit)
+                        if len(approved_commits) > 9:
+                                break
+                template_values = {"token": new_token, "page": "main", "commits": approved_commits}
 
                 self.response.out.write(template.render('index.html', template_values))
 
 class AdminPage(webapp.RequestHandler):
         def get(self):
                 repos = Repository.all().filter("approved = ", False).fetch(1000)
-                self.response.out.write(template.render("index.html", {"repos": repos}))
+                self.response.out.write(template.render("index.html", {"page": "admin", "repos": repos}))
 
 class ApproveRepo(webapp.RequestHandler):
         def post(self, repo_key):
