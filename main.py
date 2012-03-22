@@ -10,6 +10,8 @@ import time
 from datetime import datetime, timedelta
 import logging
 
+curses = ["fuck", "hell", "ass", "damn", "bitch", "shit", "crap", "suck", "piss"]
+
 class MissingParamException(Exception):
         param = None
 
@@ -167,14 +169,63 @@ class HookReceiver(webapp.RequestHandler):
                         repository.put()
                 for commit in body["commits"]:
                         cmt = Commit.fromJSON(repository, commit)
-                        taskqueue.add(url="/metric", params={"author_email": cmt.author_email, "repo": cmt.repository})
+                        taskqueue.add(url="/metric", params={"author_email": cmt.author_email, "repo": cmt.repository, 
+                                "num_curses": cmt.num_curses, "message": cmt.message})
                         cmt.put()
                         repository.last_update = datetime.now()
                         repository.put()
 
 class MetricWorker(webapp.RequestHandler):
         def post(self):
-                pass
+                curses_used = {}
+                total_curses_used = 0
+
+                author_email = self.request.get("author_email")
+                repo = self.request.get("repo")
+                num_curses = self.request.get("num_curses")
+                message = self.request.get("message")
+
+                for curse in curses:
+                        if curse in message:
+                                curses_used[curse] = message.count(curse)
+                                total_curses_used += 1
+
+                commits_global_entry = Metric.all().filter("key = ", "commits_global").get()
+                if not commits_global_entry:
+                        commits_global_entry = Metric(key="commits_global", count=0)
+                else:
+                        commits_global_entry.count += 1
+                commits_global_entry.put()
+
+                curses_global_entry = Metric.all().filter("key = ", "curses_global").get()
+                if not curses_global_entry:
+                        curses_global_entry = Metric(key="curses_global", count=total_curses_used)
+                else:
+                        curses_global_entry.count += total_curses_used
+                curses_global_entry.put()
+
+                for curse in curses_used: # Individual curse word metrics
+                        global_curse_entry = Metric.all().filter("key = ", "%s_global" % curse).get()
+                        if not global_curse_entry:
+                                global_curse_entry = Metric(key="%s_global" % curse, count=curses_used[curse])
+                        else:
+                                global_curse_entry.count += curses_used[curse]
+                        global_curse_entry.put()
+
+                        author_curse_entry = Metric.all().filter("key = ", "%s_author_%s" % (curse, author_email)).get()
+                        if not author_curse_entry:
+                                author_curse_entry = Metric(key="%s_author_%s" % (curse, author_email), count=curses_used[curse])
+                        else:
+                                author_curse_entry.count += curses_used[curse]
+                        author_curse_entry.put()
+
+                        repo_curse_entry = Metric.all().filter("key = ", "%s_repo_%s" % (curse, repo)).get()
+                        if not repo_curse_entry:
+                                repo_curse_entry = Metric(key="%s_repo_%s" % (curse, repo), count=curses_used[curse])
+                        else:
+                                repo_curse_entry.count += curses_used[curse]
+                        repo_curse_entry.put()
+
 
 application = webapp.WSGIApplication([
         ('/metric')
