@@ -172,7 +172,7 @@ class MainPage(webapp.RequestHandler):
                                 valid_tokens.append((id, token, expiration))
                 valid_tokens.append((req_id, new_token, expires))
                 memcache.set("tokens", valid_tokens)
-
+                
                 commits = Commit.all().order("-timestamp").fetch(1000)
                 approved_commits = []
                 for commit in commits:
@@ -206,11 +206,66 @@ class HookReceiver(webapp.RequestHandler):
                         repository.put()
                 for commit in body["commits"]:
                         cmt = Commit.fromJSON(repository, commit)
-                        taskqueue.add(url="/metric", params={"id": cmt.id, "author_email": cmt.author_email, "author_name": cmt.author_name, "repo": cmt.repository.url, 
-                                "message": cmt.message})
                         cmt.put()
                         repository.last_update = datetime.now()
                         repository.put()
+                        taskqueue.add(url="/metric", params={"id": cmt.id, "author_email": cmt.author_email, "author_name": cmt.author_name, "repo": cmt.repository.url, 
+                                "message": cmt.message})
+                        c = {
+                                        "id": cmt.id,
+                                        "url": cmt.url,
+                                        "author_name": cmt.author_name,
+                                        "author_hash": cmt.author_hash,
+                                        "timestamp": cmt.timestamp,
+                                        "message": cmt.summary,
+                                        "repo_name": cmt.repository.name,
+                                        "repo_url": cmt.repository.url,
+                                        "origin": "commit"
+                                }
+                        taskqueue.add(url="/pusher", params=c) 
+
+class PushWorker(webapp.RequestHandler):
+        def post(self):
+                origin = self.request.get("origin")
+                u = None
+                if origin == "commit":
+                        id = self.request.get("id")
+                        url = self.request.get("url")
+                        author_name = self.request.get("author_name")
+                        author_hash = self.request.get("author_hash")
+                        timestamp = self.request.get("timestamp")
+                        message = self.request.get("message")
+                        repo_name = self.request.get("repo_name")
+                        repo_url = self.request.get("repo_url")
+                
+                        u = {
+                                "nature": "commit",
+                                "id": id,
+                                "url": url,
+                                "author_name": author_name,
+                                "author_hash": author_hash,
+                                "timestamp": timestamp,
+                                "message": message,
+                                "repo_name": repo_name,
+                                "repo_url": repo_url
+                        }
+                elif origin == "metrics":
+                        u = {
+                                "nature": "metrics",
+                                "global_commits": self.request.get("global_commits"),
+                                "global_curses": self.request.get("global_curses")
+                        }
+                if u is not None:
+                        tokens = memcache.get("tokens")
+                        valid_tokens = []
+                        if tokens is None:
+                                tokens = []
+                        for id, token, expiration in tokens:
+                                if expiration > time.time():
+                                        valid_tokens.append((id, token, expiration))
+                                        channel.send_message(id, simplejson.dumps(u))
+                        memcache.set("tokens", valid_tokens)
+
 
 class MetricWorker(webapp.RequestHandler):
         def post(self):
@@ -239,6 +294,7 @@ class MetricWorker(webapp.RequestHandler):
                 else:
                         query.count += 1
                 updated_entries.append(query)
+                global_commits = query.count
 
                 query = GlobalMetric.all().filter("nature = ", "curse").get()
                 if not query:
@@ -246,6 +302,7 @@ class MetricWorker(webapp.RequestHandler):
                 else:
                         query.count += total_curses_used
                 updated_entries.append(query)
+                global_curses = query.count
 
                 repo_commit_query = RepoMetric.all().filter("nature = ", "commit").filter("url = ", repo).get()
                 if not repo_commit_query:
@@ -275,11 +332,20 @@ class MetricWorker(webapp.RequestHandler):
                         query.count += total_curses_used
                 updated_entries.append(query)
 
+
+                mets = {
+                        "origin": "metrics",
+                        "global_commits": global_commits,
+                        "global_curses": global_curses
+                }
+
                 db.put(updated_entries)
+                taskqueue.add(url="/pusher", params=mets)
 
 
 application = webapp.WSGIApplication([
         ('/metric', MetricWorker),
+        ('/pusher', PushWorker),
         ('/github', HookReceiver),
         ('/admin', AdminPage),
         ('/approve/([^/]+)', ApproveRepo),
