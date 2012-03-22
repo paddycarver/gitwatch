@@ -231,6 +231,7 @@ class HookReceiver(webapp.RequestHandler):
                         repository = Repository.fromJSON(body["repository"])
                         repository.put()
                 for commit in body["commits"]:
+                        commit['pusher'] = body['pusher']
                         cmt = Commit.fromJSON(repository, commit)
                         cmt.put()
                         repository.last_update = datetime.now()
