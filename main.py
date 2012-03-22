@@ -181,7 +181,17 @@ class MainPage(webapp.RequestHandler):
                                 approved_commits.append(commit)
                         if len(approved_commits) > 9:
                                 break
-                template_values = {"token": new_token, "page": "main", "commits": approved_commits}
+                global_commits = 0
+                global_curses = 0
+                commit_query = GlobalMetric.all().filter("nature = ", "commit").get()
+                if commit_query:
+                        global_commits = commit_query.count
+
+                curse_query = GlobalMetric.all().filter("nature = ", "curse").get()
+                if curse_query:
+                        global_curses = curse_query.count
+
+                template_values = {"token": new_token, "page": "main", "commits": approved_commits, "global_commit_count": global_commits, "global_curse_count": global_curses}
 
                 self.response.out.write(template.render('index.html', template_values))
 
