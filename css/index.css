@@ -7009,6 +7009,11 @@ a.thumbnail:hover {
 .details > .name {
   font-size: 16.25px;
 }
+.message a,
+.message a:hover,
+.message a:visited {
+  color: black;
+}
 .counterwrapper {
   float: right;
   position: relative;
