@@ -280,10 +280,22 @@ class PushWorker(webapp.RequestHandler):
                                 "repo_url": repo_url
                         }
                 elif origin == "metrics":
-                        authors_desc = AuthorMetric.all().filter("nature =", "commit").order("-count").fetch(10)
-                        authors_asc = AuthorMetric.all().filter("nature =", "commit").order("count").fetch(10)
-                        repo_desc = RepoMetric.all().filter("nature =", "commit").order("-count").fetch(10)
-                        repo_asc = RepoMetric.all().filter("nature =", "commit").order("count").fetch(10)
+                        authors_desc = []
+                        authors_asc = []
+                        repos_desc = []
+                        repos_asc = []
+                        authors_d = AuthorMetric.all().filter("nature =", "commit").order("-count").fetch(10)
+                        authors_a = AuthorMetric.all().filter("nature =", "commit").order("count").fetch(10)
+                        repo_d = RepoMetric.all().filter("nature =", "commit").order("-count").fetch(10)
+                        repo_a = RepoMetric.all().filter("nature =", "commit").order("count").fetch(10)
+                        for author in authors_d:
+                                authors_desc.append({"count": author.count, "name": author.name})
+                        for author in authors_a:
+                                authors_asc.append({"count": author.count, "name": author.name})
+                        for repo in repos_d:
+                                repos_desc.append({"count": repo.count, "url": repo.url})
+                        for repo in repos_a:
+                                repos_asc.append({"count": repo.count, "url": repo.url})
                         u = {
                                 "nature": "metrics",
                                 "global_commits": self.request.get("global_commits"),
