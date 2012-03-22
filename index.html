@@ -6,15 +6,96 @@
         <title>GitWatch</title>
 	
 	<meta name="description" content="A live feed of Github repositories.">
-	<meta name="viewport" content="width=1024, user-scalable=no">
+        <meta name="viewport" content="width=1024, user-scalable=no">
+
+        <link href="css/index.css" rel="stylesheet">
+        <link href="css/counter.css" rel="stylesheet">
+        <link href="css/chosen.css" rel="stylesheet">
 </head>
 <body>
-        <h1>Commits</h1>
-        <ul id="commits"></ul>
+        <div class="container-fluid">
+                <div class="row-fluid">
+                        <div class="span12">
+                                <div class="well" style="height: 150px;">
+                                        <h1>We'll put graphs here.</h1>
+                                </div>
+                        </div>
+                </div>
+
+                <div class="row-fluid">
+                        <div class="span9 commit-log">
+                                <div class="navbar">
+                                        <div class="navbar-inner">
+                                                <div class="container clearfix">
+                                                        <ul class="nav">
+                                                                <li><a href="/">Home</a></li>
+                                                        </ul>
+                                                        <ul class="nav pull-right">
+                                                                <li><select data-placeholder="Filter commits" style="width: 350px; height: 30px; margin-top: 5px;" multiple id="filterselect">
+                                                                                <option value="paddy">paddy</option>
+                                                                                <option value="nick">nick</option>
+                                                                                <option value="ubhacking">ubhacking</option>
+                                                                                <option value="gitwatch">gitwatch</option>
+                                                                                <option value="no_profanity">no profanity</option>
+                                                                                <option value="only_profanity">only profanity</option>
+                                                                </select></li>
+                                                        </ul>
+                                                </div>
+                                        </div>
+                                </div>
+                                <div class="commit container-fluid">
+                                        <div class="row-fluid">
+                                                <div class="span1">
+                                                        <img src="https://secure.gravatar.com/avatar/ce539e18df8adc26ecddf0e0273ee3d8?s=50" class="avatar" />
+                                                </div>
+                                                <div class="span11 details">
+                                                        <p class="timestamp">Yesterday</p>
+                                                        <p class="name">Paddy Foran committed to Repo</p>
+                                                        <p class="message">Insert commit here</p>
+                                                </div>
+                                        </div>
+                                </div>
+                                <div class="commit container-fluid">
+                                        <div class="row-fluid">
+                                                <div class="span1">
+                                                        <img src="https://secure.gravatar.com/avatar/ce539e18df8adc26ecddf0e0273ee3d8?s=50" class="avatar" />
+                                                </div>
+                                                <div class="span11 details">
+                                                        <p class="timestamp">Yesterday</p>
+                                                        <p class="name">Paddy Foran committed to Repo</p>
+                                                        <p class="message">Another commit goes here</p>
+                                                </div>
+                                        </div>
+                                </div>
+                        </div>
+                        <div class="span3">
+                                <div class="statsbar">
+                                        <h2>Commits</h2>
+                                        <div class="counterwrapper">
+                                                <div class="flip-counter" id="commit-counter"></div>
+                                        </div>
+                                        <h2>Curses</h2>
+                                        <div class="counterwrapper">
+                                                <div class="flip-counter" id="curses-counter"></div>
+                                        </div>
+                                        <h2>Most Active User</h2>
+                                        <h3><span id="most-active-user">Paddy</span>: <span id="most-active-user-commits">100</span> Commits</h3>
+                                        <h2>Most Active Repo</h2>
+                                        <h3><span id="most-active-repo">GitWatch</span>: <span id="most-active-repo-commits">1000</span> Commits</h3>
+                                        <h2>Least Active User</h2>
+                                        <h3><span id="least-active-user">Paddy</span>: <span id="least-active-user-commits">10</span> Commits</h3>
+                                        <h2>Least Active Repo</h2>
+                                        <h3><span id="least-active-repo">UBHacking</span>: <span id="least-active-repo-commits">100</span> Commits</h3>
+                                </div>
+                        </div>
+                </div>
+        </div>
 <!-- Grab CDN jQuery, with a protocol relative URL; fall back to local if offline -->
 <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
 <script>window.jQuery || document.write('<script src="jquery-1.7.min.js"><\/script>')</script>
 <script type="text/javascript" src="/_ah/channel/jsapi"></script>
+<script type="text/javascript" src="/js/chosen.jquery.min.js"></script>
+<script type="text/javascript" src="/js/flipcounter.min.js"></script>
 
 <script>
 function onOpened() {
@@ -33,13 +114,20 @@ function onClose() {
         console.log("CLOSED");
 }
 
+var commitCounter;
+var cursesCounter;
+
 $(function() {
+        $("#filterselect").chosen();
+        $("#filterselect_chzn").css("margin-top", "5px");
         channel = new goog.appengine.Channel('{{ token }}');
         socket = channel.open();
         socket.onopen = onOpened;
         socket.onmessage = onMessage;
         socket.onerror = onError;
-        socket.onclose = onClose;
+        socket.onclose = onClose
+        commitCounter = new flipCounter('commit-counter', {value:0, inc:1, pace:600, auto:false});;
+        cursesCounter = new flipCounter('curses-counter', {value:0, inc:1, pace:600, auto:false});
 });
 </script>
 

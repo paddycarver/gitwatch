@@ -9,6 +9,7 @@ from django.utils import simplejson
 import time
 from datetime import datetime, timedelta
 import logging
+import hashlib
 
 curses = ["fuck", "hell", "ass", "damn", "bitch", "shit", "crap", "suck", "piss"]
 
@@ -73,6 +74,7 @@ class Commit(db.Model):
         url = db.StringProperty(required=True)
         author_name = db.StringProperty(required=True)
         author_email = db.StringProperty(required=True)
+        author_hash = db.StringProperty()
         timestamp = db.DateTimeProperty()
         message = db.TextProperty()
         summary = db.StringProperty()
@@ -96,6 +98,7 @@ class Commit(db.Model):
                         raise MissingParamException("author.name")
                 author_name = json["author"]["name"]
                 author_email = json["author"]["email"]
+                author_hash = hashlib.md5(json["author"]["email"].strip().lower()).hexdigest()
                 timestamp = datetime.now()
                 if "timestamp" in json:
                         offset = None
