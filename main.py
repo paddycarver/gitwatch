@@ -9,9 +9,8 @@ from django.utils import simplejson
 import time
 from datetime import datetime, timedelta
 import logging
+import re
 import hashlib
-
-curses = ["fuck", "hell", "ass", "damn", "bitch", "shit", "crap", "suck", "piss"]
 
 class MissingParamException(Exception):
         param = None
@@ -201,11 +200,16 @@ class MetricWorker(webapp.RequestHandler):
                 repo = self.request.get("repo")
                 num_curses = self.request.get("num_curses")
                 message = self.request.get("message")
+                r = re.compile("[^\w]ass[^\w]|[^\w]asshole[^\w]|[^\w]hell[^\w]|fuck|shit|damn|bitch|bastard", flags=re.IGNORECASE)
+                found_words = r.findall(message)
 
-                for curse in curses:
-                        if curse in message:
-                                curses_used[curse] = message.count(curse)
-                                total_curses_used += 1
+                for word in found_words:
+                        word = ''.join(e for e in word.lower() if e.isalpha())
+                        if word in curses_used:
+                                curses_used[word] += 1
+                        else:
+                                curses_used[word] = 1
+                total_curses_used = len(found_words)
 
                 if total_curses_used > 0:
                         Commit.all().filter("id = ", commit_id).get().num_curses = total_curses_used
