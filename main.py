@@ -286,8 +286,8 @@ class PushWorker(webapp.RequestHandler):
                         repos_asc = []
                         authors_d = AuthorMetric.all().filter("nature =", "commit").order("-count").fetch(10)
                         authors_a = AuthorMetric.all().filter("nature =", "commit").order("count").fetch(10)
-                        repo_d = RepoMetric.all().filter("nature =", "commit").order("-count").fetch(10)
-                        repo_a = RepoMetric.all().filter("nature =", "commit").order("count").fetch(10)
+                        repos_d = RepoMetric.all().filter("nature =", "commit").order("-count").fetch(10)
+                        repos_a = RepoMetric.all().filter("nature =", "commit").order("count").fetch(10)
                         for author in authors_d:
                                 authors_desc.append({"count": author.count, "name": author.name})
                         for author in authors_a:
