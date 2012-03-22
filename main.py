@@ -1,6 +1,7 @@
 from google.appengine.api import channel
 from google.appengine.api import memcache
 from google.appengine.api import taskqueue
+from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
@@ -186,6 +187,13 @@ class MainPage(webapp.RequestHandler):
 
 class AdminPage(webapp.RequestHandler):
         def get(self):
+                user = users.get_current_user()
+                if not user:
+                        self.redirect(users.create_login_url("/admin"))
+                        return
+                if not users.is_current_user_admin():
+                        self.redirect("/")
+                        return
                 repos = Repository.all().filter("approved = ", False).fetch(1000)
                 self.response.out.write(template.render("index.html", {"page": "admin", "repos": repos}))
 
