@@ -43,18 +43,22 @@
                                                 </div>
                                         </div>
                                 </div>
+                                {% if repos %}
+                                {% for repo in repos %}
                                 <div class="commit container-fluid">
                                         <div class="row-fluid">
                                                 <div class="span1">
-                                                        <img src="https://secure.gravatar.com/avatar/ce539e18df8adc26ecddf0e0273ee3d8?s=50" class="avatar" />
+                                                        <img src="https://secure.gravatar.com/avatar/{{ repo.owner_hash }}?s=50" class="avatar" />
                                                 </div>
                                                 <div class="span11 details">
-                                                        <p class="timestamp">Yesterday</p>
-                                                        <p class="name">Paddy Foran committed to Repo</p>
-                                                        <p class="message">Insert commit here</p>
+                                                        <p class="timestamp"><a href="/approve/{{ repo.key }}" class="btn btn-large">Approve</a></p>
+                                                        <p class="name">{{ repo.name }} ({{ repo.url }})</p>
+                                                        <p class="message">{{ repo.description }}</p>
                                                 </div>
                                         </div>
                                 </div>
+                                {% endfor %}
+                                {% else %}
                                 <div class="commit container-fluid">
                                         <div class="row-fluid">
                                                 <div class="span1">
@@ -67,6 +71,7 @@
                                                 </div>
                                         </div>
                                 </div>
+                                {% endif %}
                         </div>
                         <div class="span3">
                                 <div class="statsbar">

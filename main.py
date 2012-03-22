@@ -28,6 +28,7 @@ class Repository(db.Model):
         watchers = db.IntegerProperty(required=True)
         owner_name = db.StringProperty(required=True)
         owner_email = db.StringProperty(required=True)
+        owner_hash = db.StringProperty()
         description = db.StringProperty(required=False)
         private = db.BooleanProperty(default=False)
         approved = db.BooleanProperty(default=False)
@@ -47,6 +48,7 @@ class Repository(db.Model):
                         raise MissingParamException("owner.name")
                 owner_email = json["owner"]["email"]
                 owner_name = json["owner"]["name"]
+                owner_hash = hashlib.md5(json["owner"]["email"].strip().lower()).hexdigest()                
                 name = url.split("/")[-1]
                 if "name" in json:
                         name = json["name"]
@@ -65,7 +67,7 @@ class Repository(db.Model):
                 repo = Repository(url=url, owner_email=owner_email,
                                 owner_name=owner_name, name=name, forks=forks, 
                                 watchers=watchers, description=description,
-                                private=private)
+                                private=private, owner_hash=owner_hash)
                 return repo
 
 class Commit(db.Model):
@@ -130,7 +132,7 @@ class Commit(db.Model):
                 commit = Commit(id=id, url=url, author_name=author_name,
                                 author_email=author_email, timestamp=timestamp,
                                 message=message, summary=summary, added=added,
-                                repository=repo)
+                                repository=repo, author_hash=author_hash)
                 return commit
 
 class Metric(db.Model):
@@ -165,7 +167,7 @@ class MainPage(webapp.RequestHandler):
 class AdminPage(webapp.RequestHandler):
         def get(self):
                 repos = Repository.all().filter("approved = ", False).fetch(1000)
-                self.response.out.write(template.render("admin.html", {"repos": repos}))
+                self.response.out.write(template.render("index.html", {"repos": repos}))
 
 class ApproveRepo(webapp.RequestHandler):
         def post(self, repo_key):
