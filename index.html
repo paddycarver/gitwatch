@@ -186,12 +186,8 @@ function onClose() {
 }
 
 function addCommit(hash, timestamp, name, repo, message, profile, url) {
-        //if($("#commits .commit").length > 9) {
                 $("#commits").css("overflow-y", "hidden");
                 $("#commits").css("overflow-x", "visible");
-        //} else {
-        //        $("#commits").css("overflow", "visible");
-        //}
 
         var h = $("#commits").height();
 
