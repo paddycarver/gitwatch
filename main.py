@@ -75,6 +75,7 @@ class Commit(db.Model):
         summary = db.StringProperty()
         added = db.StringListProperty()
         repository = db.ReferenceProperty(Repository, collection_name="commits")
+        num_curses = db.IntegerProperty(default=0)
 
         @staticmethod
         def fromJSON(repo, json):
