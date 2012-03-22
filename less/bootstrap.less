@@ -63,6 +63,7 @@
 
 .commit {
   .well();
+  .clearfix();
 }
 
 .statsbar {
@@ -70,5 +71,49 @@
   text-align: center;
 }
 
+.statsbar > h2 {
+  border-bottom: 1px black solid;
+  margin-top: 20px;
+  clear: both;
+}
+
+.statsbar > h2:first-child {
+  margin-top: 0px;
+}
+
+.statsbar > h1 {
+  font-size: @baseFontSize * 4;
+  line-height: @baseLineHeight * 4;
+}
+
+.details {
+  .clearfix();
+}
+
+.details > .timestamp {
+  .pull-right();
+}
+
+.details > .name {
+  font-size: @baseFontSize * 1.25;
+}
+
+.avatar, .commit {
+  .box-shadow(0 3px 7px rgba(0,0,0,0.7));
+}
+
+.counterwrapper {
+  float: right;
+  position: relative;
+  left: -50%;
+  margin-top: 10px;
+  .clearfix();
+}
+
+.flip-counter {
+  position: relative;
+  left: 50%;
+  clear: both;
+}
 // Utility classes
 @import "utilities.less"; // Has to be last to override when necessary

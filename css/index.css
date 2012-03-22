@@ -6923,10 +6923,28 @@ a.thumbnail:hover {
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
   -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+  *zoom: 1;
+  *zoom: 1;
 }
 .commit blockquote {
   border-color: #ddd;
   border-color: rgba(0, 0, 0, 0.15);
+}
+.commit:before,
+.commit:after {
+  display: table;
+  content: "";
+}
+.commit:after {
+  clear: both;
+}
+.commit:before,
+.commit:after {
+  display: table;
+  content: "";
+}
+.commit:after {
+  clear: both;
 }
 .statsbar {
   min-height: 20px;
@@ -6952,6 +6970,82 @@ a.thumbnail:hover {
 .statsbar blockquote {
   border-color: #ddd;
   border-color: rgba(0, 0, 0, 0.15);
+}
+.statsbar > h2 {
+  border-bottom: 1px black solid;
+  margin-top: 20px;
+  clear: both;
+}
+.statsbar > h2:first-child {
+  margin-top: 0px;
+}
+.statsbar > h1 {
+  font-size: 52px;
+  line-height: 72px;
+}
+.details {
+  *zoom: 1;
+  *zoom: 1;
+}
+.details:before,
+.details:after {
+  display: table;
+  content: "";
+}
+.details:after {
+  clear: both;
+}
+.details:before,
+.details:after {
+  display: table;
+  content: "";
+}
+.details:after {
+  clear: both;
+}
+.details > .timestamp {
+  float: right;
+}
+.details > .name {
+  font-size: 16.25px;
+}
+.avatar,
+.commit {
+  -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
+  -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
+  -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
+  -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
+}
+.counterwrapper {
+  float: right;
+  position: relative;
+  left: -50%;
+  margin-top: 10px;
+  *zoom: 1;
+  *zoom: 1;
+}
+.counterwrapper:before,
+.counterwrapper:after {
+  display: table;
+  content: "";
+}
+.counterwrapper:after {
+  clear: both;
+}
+.counterwrapper:before,
+.counterwrapper:after {
+  display: table;
+  content: "";
+}
+.counterwrapper:after {
+  clear: both;
+}
+.flip-counter {
+  position: relative;
+  left: 50%;
+  clear: both;
 }
 .pull-right {
   float: right;
