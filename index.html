@@ -10,6 +10,7 @@
 
         <link href="css/index.css" rel="stylesheet">
         <link href="css/counter.css" rel="stylesheet">
+        <link href="css/chosen.css" rel="stylesheet">
 </head>
 <body>
         <div class="container-fluid">
@@ -25,33 +26,19 @@
                         <div class="span9 commit-log">
                                 <div class="navbar">
                                         <div class="navbar-inner">
-                                                <div class="container">
-                                                        <ul class="nav nav-pills">
+                                                <div class="container clearfix">
+                                                        <ul class="nav">
                                                                 <li><a href="/">Home</a></li>
-                                                                <li class="divider-vertical"></li>
-                                                                <li class="dropdown" id="person-filter">
-                                                                        <a class="dropdown-toggle" href="#person-filter" data-toggle="dropdown">Person</a>
-                                                                        <ul class="dropdown-menu">
-                                                                                <li>Paddy</li>
-                                                                                <li>Nick</li>
-                                                                        </ul>
-                                                                </li>
-                                                                <li class="dropdown" id="curse-filter">
-                                                                        <a class="dropdown-toggle" href="#curse-filter" data-toggle="dropdown">Curses</a>
-                                                                        <ul class="dropdown-menu">
-                                                                                <li>Fuck</li>
-                                                                                <li>This</li>
-                                                                                <li>Shit</li>
-                                                                        </ul>
-                                                                </li>
-                                                                <li class="dropdown" id="repo-filter">
-                                                                        <a class="dropdown-toggle" href="#repo-filter" data-toggle="dropdown">Repository</a>
-                                                                        <ul class="dropdown-menu">
-                                                                                <li>GitWatch</li>
-                                                                                <li>2cloud</li>
-                                                                                <li>UBHacking</li>
-                                                                        </ul>
-                                                                </li>
+                                                        </ul>
+                                                        <ul class="nav pull-right">
+                                                                <li><select data-placeholder="Filter commits" style="width: 350px; height: 30px; margin-top: 5px;" multiple id="filterselect">
+                                                                                <option value="paddy">paddy</option>
+                                                                                <option value="nick">nick</option>
+                                                                                <option value="ubhacking">ubhacking</option>
+                                                                                <option value="gitwatch">gitwatch</option>
+                                                                                <option value="no_profanity">no profanity</option>
+                                                                                <option value="only_profanity">only profanity</option>
+                                                                </select></li>
                                                         </ul>
                                                 </div>
                                         </div>
@@ -107,7 +94,7 @@
 <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
 <script>window.jQuery || document.write('<script src="jquery-1.7.min.js"><\/script>')</script>
 <script type="text/javascript" src="/_ah/channel/jsapi"></script>
-<script type="text/javascript" src="/js/bootstrap-dropdown.js"></script>
+<script type="text/javascript" src="/js/chosen.jquery.min.js"></script>
 <script type="text/javascript" src="/js/flipcounter.min.js"></script>
 
 <script>
@@ -131,6 +118,8 @@ var commitCounter;
 var cursesCounter;
 
 $(function() {
+        $("#filterselect").chosen();
+        $("#filterselect_chzn").css("margin-top", "5px");
         channel = new goog.appengine.Channel('{{ token }}');
         socket = channel.open();
         socket.onopen = onOpened;
