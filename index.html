@@ -32,10 +32,12 @@
                                                         </ul>
                                                         <ul class="nav pull-right">
                                                                 <li><select data-placeholder="Filter commits" style="width: 350px; height: 30px; margin-top: 5px;" multiple id="filterselect">
-                                                                                <option value="paddy">paddy</option>
-                                                                                <option value="nick">nick</option>
-                                                                                <option value="ubhacking">ubhacking</option>
-                                                                                <option value="gitwatch">gitwatch</option>
+                                                                                {% for author in authors_desc %}
+                                                                                <option value="{{ author.email }}">{{ author.name }}</option>
+                                                                                {% endfor %}
+                                                                                {% for repo in repos_desc %}
+                                                                                <option value={{ repo.name }}">{{ repo.name }}</option>
+                                                                                {% endfor %}
                                                                                 <option value="no_profanity">no profanity</option>
                                                                                 <option value="only_profanity">only profanity</option>
                                                                 </select></li>
@@ -109,13 +111,13 @@
                                                 <div class="flip-counter" id="curses-counter"></div>
                                         </div>
                                         <h2>Most Active User</h2>
-                                        <h3><span id="most-active-user">Paddy</span>: <span id="most-active-user-commits">100</span> Commits</h3>
+                                        <h3><span id="most-active-user">{{ authors_desc.0.name }}</span>: <span id="most-active-user-commits">{{ authors_desc.0.count }}</span> Commits</h3>
                                         <h2>Most Active Repo</h2>
-                                        <h3><span id="most-active-repo">GitWatch</span>: <span id="most-active-repo-commits">1000</span> Commits</h3>
+                                        <h3><span id="most-active-repo">{{ repos_desc.0.name }}</span>: <span id="most-active-repo-commits">{{ repos_desc.0.count }}</span> Commits</h3>
                                         <h2>Least Active User</h2>
-                                        <h3><span id="least-active-user">Paddy</span>: <span id="least-active-user-commits">10</span> Commits</h3>
+                                        <h3><span id="least-active-user">{{ authors_asc.0.name }}</span>: <span id="least-active-user-commits">{{ authors_asc.0.count }}</span> Commits</h3>
                                         <h2>Least Active Repo</h2>
-                                        <h3><span id="least-active-repo">UBHacking</span>: <span id="least-active-repo-commits">100</span> Commits</h3>
+                                        <h3><span id="least-active-repo">{{ repos_asc.0.name }}</span>: <span id="least-active-repo-commits">{{ repos_asc.0.count }}</span> Commits</h3>
                                 </div>
                         </div>
                 </div>
@@ -135,13 +137,23 @@ function onOpened() {
 }
 
 function onMessage(data) {
-        console.log("Message: "+JSON.stringify(data));
         data = JSON.parse(data['data'])
         if(data["nature"] == "commit") {
                 addCommit(data["author_hash"], data["timestamp"], data["author_name"], "<a href=\""+data["repo_url"]+"\">"+data["repo_name"]+"</a>", data["message"], data["pusher"], data["url"]);
         } else if(data["nature"] == "metrics") {
                 commitCounter.incrementTo(data["global_commits"]);
                 cursesCounter.incrementTo(data["global_curses"]);
+                $("#most-active-user").text(data["author"]["desc"][0]["name"]);
+                $("#most-active-user-commits").text(data["author"]["desc"][0]["count"]);
+                active_repo_name = data["repo"]["desc"][0]["url"].split("/");
+                $("#most-active-repo").text(active_repo_name[active_repo_name.length-1]);
+                $("#most-active-repo-commits").text(data["repo"]["desc"][0]["count"]);
+                $("#least-active-user").text(data["author"]["asc"][0]["name"]);
+                $("#least-active-user-commits").text(data["author"]["asc"][0]["count"]);
+                inactive_repo_name = data["repo"]["asc"][0]["url"].split("/");
+                $("#least-active-repo").text(inactive_repo_name[inactive_repo_name.length-1]);
+                $("#least-active-repo-commits").text(data["repo"]["asc"][0]["count"]);
+                console.log(data);
         }
 }
 
@@ -168,9 +180,6 @@ function addCommit(hash, timestamp, name, repo, message, profile, url) {
         var paddingBottom = $("#commits").css("padding-bottom");
         paddingBottom = paddingBottom.substr(0, paddingBottom.length - 2);
 
-        //if($("#commits .commit").length > 9) {
-        //        $("#commits").css("height", h);
-        //}
         if(profile) {
                 name = "<a href=\"https://github.com/" + profile + "\">"+name+"</a>";
         }
@@ -183,7 +192,6 @@ function addCommit(hash, timestamp, name, repo, message, profile, url) {
         $("#commits .commit:first").css("position", "relative");
         $("#commits .commit:first").css("top", 0-paddingTop);
         $("#commits .commit:last").css("position", "relative");
-        //$("#commits").animate({height: h + heightDiff}, 1500);
 
         $("#commits .commit:first").animate({top: 0}, 250, function() {
                 $("#commits .commit:first").animate({marginTop: oldMarginTop}, 1000, function() {

@@ -197,7 +197,24 @@ class MainPage(webapp.RequestHandler):
                 if curse_query:
                         global_curses = curse_query.count
 
-                template_values = {"token": new_token, "page": "main", "commits": approved_commits, "global_commit_count": global_commits, "global_curse_count": global_curses}
+                authors_desc = []
+                authors_asc = []
+                repos_desc = []
+                repos_asc = []
+                authors_d = AuthorMetric.all().filter("nature =", "commit").order("-count").fetch(1000)
+                authors_a = AuthorMetric.all().filter("nature =", "commit").order("count").fetch(10)
+                repos_d = RepoMetric.all().filter("nature =", "commit").order("-count").fetch(1000)
+                repos_a = RepoMetric.all().filter("nature =", "commit").order("count").fetch(10)
+                for author in authors_d:
+                        authors_desc.append({"count": author.count, "name": author.name, "email": author.email})
+                for author in authors_a:
+                        authors_asc.append({"count": author.count, "name": author.name, "email": author.email})
+                for repo in repos_d:
+                        repos_desc.append({"count": repo.count, "url": repo.url, "name": repo.url.split("/")[-1]})
+                for repo in repos_a:
+                        repos_asc.append({"count": repo.count, "url": repo.url, "name": repo.url.split("/")[-1]})
+                
+                template_values = {"token": new_token, "page": "main", "authors_desc": authors_desc, "authors_asc": authors_asc, "repos_asc": repos_asc, "repos_desc": repos_desc, "commits": approved_commits, "global_commit_count": global_commits, "global_curse_count": global_curses}
 
                 self.response.out.write(template.render('index.html', template_values))
 
@@ -286,8 +303,8 @@ class PushWorker(webapp.RequestHandler):
                         repos_asc = []
                         authors_d = AuthorMetric.all().filter("nature =", "commit").order("-count").fetch(10)
                         authors_a = AuthorMetric.all().filter("nature =", "commit").order("count").fetch(10)
-                        repo_d = RepoMetric.all().filter("nature =", "commit").order("-count").fetch(10)
-                        repo_a = RepoMetric.all().filter("nature =", "commit").order("count").fetch(10)
+                        repos_d = RepoMetric.all().filter("nature =", "commit").order("-count").fetch(10)
+                        repos_a = RepoMetric.all().filter("nature =", "commit").order("count").fetch(10)
                         for author in authors_d:
                                 authors_desc.append({"count": author.count, "name": author.name})
                         for author in authors_a:
@@ -330,7 +347,7 @@ class MetricWorker(webapp.RequestHandler):
                 author_name = self.request.get("author_name")
                 repo = self.request.get("repo")
                 message = self.request.get("message")
-                r = re.compile("[^\w]ass[^\w]|[^\w]asshole[^\w]|[^\w]hell[^\w]|fuck|shit|damn|bitch|bastard", flags=re.IGNORECASE)
+                r = re.compile("[^\w]ass[^\w]|[^\w]asshole[^\w]|[^\w]dumbass[^\w]|[^\w]hell[^\w]|fuck|shit|damn|bitch|bastard", flags=re.IGNORECASE)
                 found_words = r.findall(message)
                 total_curses_used = len(found_words)
 
