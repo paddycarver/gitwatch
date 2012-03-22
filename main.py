@@ -330,7 +330,7 @@ class MetricWorker(webapp.RequestHandler):
                 author_name = self.request.get("author_name")
                 repo = self.request.get("repo")
                 message = self.request.get("message")
-                r = re.compile("[^\w]ass[^\w]|[^\w]asshole[^\w]|[^\w]hell[^\w]|fuck|shit|damn|bitch|bastard", flags=re.IGNORECASE)
+                r = re.compile("[^\w]ass[^\w]|[^\w]asshole[^\w]|[^\w]dumbass[^\w]|[^\w]hell[^\w]|fuck|shit|damn|bitch|bastard", flags=re.IGNORECASE)
                 found_words = r.findall(message)
                 total_curses_used = len(found_words)
 
