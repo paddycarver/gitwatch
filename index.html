@@ -150,6 +150,7 @@ function onMessage(data) {
                 inactive_repo_name = data["repo"]["asc"][0]["url"].split("/");
                 $("#least-active-repo").text(inactive_repo_name[-1]);
                 $("#least-active-repo-commits").text(data["repo"]["asc"][0]["count"]);
+                console.log(data);
         }
 }
 
