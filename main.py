@@ -132,7 +132,7 @@ class Commit(db.Model):
                 return commit
 
 class Metric(db.Model):
-        key = db.StringProperty()
+        id = db.StringProperty()
         count = db.IntegerProperty()
 
 class MainPage(webapp.RequestHandler):
@@ -169,7 +169,7 @@ class HookReceiver(webapp.RequestHandler):
                         repository.put()
                 for commit in body["commits"]:
                         cmt = Commit.fromJSON(repository, commit)
-                        taskqueue.add(url="/metric", params={"id": cmt.id, "author_email": cmt.author_email, "repo": cmt.repository, 
+                        taskqueue.add(url="/metric", params={"id": cmt.id, "author_email": cmt.author_email, "repo": cmt.repository.url, 
                                 "num_curses": cmt.num_curses, "message": cmt.message})
                         cmt.put()
                         repository.last_update = datetime.now()
@@ -198,44 +198,44 @@ class MetricWorker(webapp.RequestHandler):
                                 "curses_global", "curses_author_%s" % author_email, "curses_repo_%s" % repo]
 
                 for key in keys_to_check:
-                        entry = Metric.all().filter("key = ", key).get()
+                        entry = Metric.all().filter("id = ", key).get()
                         if "commit" in key:
                                 if not entry:
-                                        entry = Metric(key=key, count=1)
+                                        entry = Metric(id=key, count=1)
                                 else:
                                         entry.count += 1
                         elif "curse" in key:
                                 if not entry:
-                                        entry = Metric(key=key, count=total_curses_used)
+                                        entry = Metric(id=key, count=total_curses_used)
                                 else:
                                         entry.count += total_curses_used
                         entry.put()
 
                 for curse in curses_used: # Individual curse word metrics
-                        global_curse_entry = Metric.all().filter("key = ", "%s_global" % curse).get()
+                        global_curse_entry = Metric.all().filter("id = ", "%s_global" % curse).get()
                         if not global_curse_entry:
-                                global_curse_entry = Metric(key="%s_global" % curse, count=curses_used[curse])
+                                global_curse_entry = Metric(id="%s_global" % curse, count=curses_used[curse])
                         else:
                                 global_curse_entry.count += curses_used[curse]
                         global_curse_entry.put()
 
-                        author_curse_entry = Metric.all().filter("key = ", "%s_author_%s" % (curse, author_email)).get()
+                        author_curse_entry = Metric.all().filter("id = ", "%s_author_%s" % (curse, author_email)).get()
                         if not author_curse_entry:
-                                author_curse_entry = Metric(key="%s_author_%s" % (curse, author_email), count=curses_used[curse])
+                                author_curse_entry = Metric(id="%s_author_%s" % (curse, author_email), count=curses_used[curse])
                         else:
                                 author_curse_entry.count += curses_used[curse]
                         author_curse_entry.put()
 
-                        repo_curse_entry = Metric.all().filter("key = ", "%s_repo_%s" % (curse, repo)).get()
+                        repo_curse_entry = Metric.all().filter("id = ", "%s_repo_%s" % (curse, repo)).get()
                         if not repo_curse_entry:
-                                repo_curse_entry = Metric(key="%s_repo_%s" % (curse, repo), count=curses_used[curse])
+                                repo_curse_entry = Metric(id="%s_repo_%s" % (curse, repo), count=curses_used[curse])
                         else:
                                 repo_curse_entry.count += curses_used[curse]
                         repo_curse_entry.put()
 
 
 application = webapp.WSGIApplication([
-        ('/metric')
+        ('/metric', MetricWorker),
         ('/github', HookReceiver),
         ('/', MainPage)
         ])
