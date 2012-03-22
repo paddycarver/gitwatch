@@ -133,7 +133,6 @@ function onOpened() {
 }
 
 function onMessage(data) {
-        console.log("Message: "+JSON.stringify(data));
         data = JSON.parse(data['data'])
         if(data["nature"] == "commit") {
                 addCommit(data["author_hash"], data["timestamp"], data["author_name"], "<a href=\""+data["repo_url"]+"\">"+data["repo_name"]+"</a>", data["message"], data["pusher"], data["url"]);
