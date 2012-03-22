@@ -255,14 +255,19 @@ $(function() {
         });
         {% endif %}
         
-        var data = [
-        {data: [[1,300], [2,300], [3,300], [4,300], [5,300]]},
+        var data = [{data: 
+
+        {% for author in authors_desc|slice ":10" %}
+        [{{ forloop.counter}}, {{ author.count }}]{% if not forloop.last %},{% endif %}
+        {% endfor %}
+        }},
         ];
         var options = {
         series: {stack: 0,
                  lines: {show: false, steps: false },
                  bars: {show: true, barWidth: 0.9, align: 'center',},},
-        xaxis: {ticks: [[1,'One'], [2,'Two'], [3,'Three'], [4,'Four'], [5,'Five']]},
+        xaxis: {ticks: {% for author in authors_desc|slice ":10" %}
+                [[{{ forloop.counter }}, {{ author.name }}]]{% if not forloop.last %},{% endif %}{% endfor %}},
     };
 
     plot = $.plot($("#graph"), data, options);
