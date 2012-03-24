@@ -15,46 +15,7 @@
 <body>
         <div class="container-fluid">
                 <div class="row-fluid">
-                        <div class="span12">
-                                <div class="well" style="height: 150px;">
-                                        <div id="graph" style="width: 100%; height: 80%;"></div>
-                                        <ul class="nav nav-pills">
-                                        <li class="active">
-                                                <a href="#" id="top-authors">Top 10 Authors</a>
-                                        </li>
-                                        <li>
-                                                 <a href="#" id="top-repos">Top 10 Repos</a>
-                                        </li>
-                                </ul>
-                                </div>
-
-                        </div>
-
-                </div>
-
-                <div class="row-fluid">
                         <div class="span9 commit-log">
-                                <div class="navbar">
-                                        <div class="navbar-inner">
-                                                <div class="container clearfix">
-                                                        <ul class="nav">
-                                                                <li><a href="/">Home</a></li>
-                                                        </ul>
-                                                        <ul class="nav pull-right">
-                                                                <li><select data-placeholder="Filter commits" style="width: 350px; height: 30px; margin-top: 5px;" multiple id="filterselect">
-                                                                                {% for author in authors_desc %}
-                                                                                <option value="{{ author.email }}">{{ author.name }}</option>
-                                                                                {% endfor %}
-                                                                                {% for repo in repos_desc %}
-                                                                                <option value="{{ repo.name }}">{{ repo.name }}</option>
-                                                                                {% endfor %}
-                                                                                <option value="no_profanity">no profanity</option>
-                                                                                <option value="only_profanity">only profanity</option>
-                                                                </select></li>
-                                                        </ul>
-                                                </div>
-                                        </div>
-                                </div>
                                 <div id="commits">
                                 {% ifequal page "admin" %}
                                 {% if repos %}
@@ -136,10 +97,7 @@
 <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
 <script>window.jQuery || document.write('<script src="jquery-1.7.min.js"><\/script>')</script>
 <script type="text/javascript" src="/_ah/channel/jsapi"></script>
-<script type="text/javascript" src="/js/chosen.jquery.min.js"></script>
 <script type="text/javascript" src="/js/flipcounter.min.js"></script>
-<script type="text/javascript" src="/js/jquery.flot.min.js"></script>
-<script type="text/javascript" src="/js/jquery.flot.pie.min.js"></script>
 
 <script>
 function onOpened() {
@@ -165,15 +123,6 @@ function onMessage(data) {
                 $("#least-active-repo").text(inactive_repo_name[inactive_repo_name.length-1]);
                 $("#least-active-repo-commits").text(data["repo"]["asc"][0]["count"]);
                 console.log(data);
-
-
-                authorDescData = data.author.desc;
-                authorAscData = data.author.asc;
-                repoDescData = data.repo.desc;
-                repoAscData = data.repo.asc;
-
-                updateGraphs();
-
         }
 }
 
@@ -225,16 +174,7 @@ function addCommit(hash, timestamp, name, repo, message, profile, url) {
 var commitCounter;
 var cursesCounter;
 
-var authorDescData;
-var authorAscData;
-var repoDescData;
-var repoAscData;
-
-var plot;
-
 $(function() {
-        $("#filterselect").chosen();
-        $("#filterselect_chzn").css("margin-top", "5px");
         channel = new goog.appengine.Channel('{{ token }}');
         socket = channel.open();
         socket.onopen = onOpened;
@@ -242,7 +182,7 @@ $(function() {
         socket.onerror = onError;
         socket.onclose = onClose
 
-        commitCounter = new flipCounter('commit-counter', {value:{% if global_commit_count %}{{ global_commit_count }}{% else %}0{% endif %}, inc:1, pace:600, auto:false});;
+        commitCounter = new flipCounter('commit-counter', {value:{% if global_commit_count %}{{ global_commit_count }}{% else %}0{% endif %}, inc:1, pace:600, auto:false});
         cursesCounter = new flipCounter('curses-counter', {value:{% if global_curse_count %}{{ global_curse_count }}{% else %}0{% endif %}, inc:1, pace:600, auto:false});
         {% if repos %}
         $(".approve-repo-button").click(function(e) {
@@ -250,85 +190,7 @@ $(function() {
                 $.post($(this).attr("href"));
         });
         {% endif %}
-        
-        var data = [{data: 
-
-        {% for author in authors_desc|slice ":10" %}
-        [{{ forloop.counter}}, {{ author.count }}]{% if not forloop.last %},{% endif %}
-        {% endfor %}
-        }},
-        ];
-        var options = {
-        series: {stack: 0,
-                 lines: {show: false, steps: false },
-                 bars: {show: true, barWidth: 0.9, align: 'center',},},
-        xaxis: {ticks: {% for author in authors_desc|slice ":10" %}
-                [[{{ forloop.counter }}, {{ author.name }}]]{% if not forloop.last %},{% endif %}{% endfor %}},
-    };
-
-    plot = $.plot($("#graph"), data, options);
-
-    $("#top-authors").click(function(e) {
-        e.preventDefault();
-        $(".nav-pills").removeClass("current");
-        $(this).addClass("current");
-        genAuthorGraph();
-    });
-
-    $("#top-repos").click(function(e) {
-        e.preventDefault();
-        $(".nav-pills").removeClass("current");
-        $(this).addClass("current");
-        genRepoGraph();
-    });
-
 });
-
-function updateGraphs() {
-       var currentGraph = $(".nav-pills > .active").attr("id");
-       if(currentGraph == "top-authors") {
-                genAuthorGraph();
-       } else if(currentGraph == "top-repos") {
-                getRepoGraph();
-       }
-}
-
-function genAuthorGraph() {
-        var data = new Array();
-        var xticks = new Array();
-        for(i = 0; i < authorDescData.length; i++) {
-                data[i] = [i, authorDescData[i].count];
-                xticks[i] = [i, authorDescData[i].name];
-        }
-        plot.setData(data);
-        var options = {
-        series: {stack: 0,
-                 lines: {show: false, steps: false },
-                 bars: {show: true, barWidth: 0.9, align: 'center',},},
-        xaxis: {ticks: xticks},
-        };
-        plot.setupGrid(options);
-        plot.draw();
-}
-
-function genRepoGraph() {
-        var data = new Array();
-        var xticks = new Array();
-        for(i = 0; i < repoDescData.length; i++) {
-                data[i] = [i, repoDescData[i].count];
-                xticks[i] = [i, repoDescData[i].name];
-        }
-        plot.setData(data);
-        var options = {
-        series: {stack: 0,
-                 lines: {show: false, steps: false },
-                 bars: {show: true, barWidth: 0.9, align: 'center',},},
-        xaxis: {ticks: xticks},
-        };
-        plot.setupGrid(options);
-        plot.draw();
-}
-
 </script>
 
 </body>
