@@ -438,6 +438,7 @@ class MetricWorker(webapp.RequestHandler):
 
 
 application = webapp.WSGIApplication([
+        ('/awards', AwardsWorker),
         ('/metric', MetricWorker),
         ('/pusher', PushWorker),
         ('/github', HookReceiver),
