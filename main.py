@@ -343,21 +343,21 @@ class AwardsWorker(webapp.RequestHandler):
                 global_commits = self.request.get("global_commits")
                 author_name = self.request.get("author_name")
                 author_email = self.request.get("author_email")
-                
+
                 if global_commits == 100:
                         mail.send_mail_to_admins("nvdirienzo@gmail.com", "UB Hacking 100th Commit", "%s (%s) deserves a prize for the 100th commit tonight." % (author_name, author_email))
                 elif global_commits == 150:
-                        mail.send_mail_to_admins("nvdirienzo@gmail.com", "UB Hacking 100th Commit", "%s (%s) deserves a prize for the 150th commit tonight." % (author_name, author_email))
+                        mail.send_mail_to_admins("nvdirienzo@gmail.com", "UB Hacking 150th Commit", "%s (%s) deserves a prize for the 150th commit tonight." % (author_name, author_email))
                 elif global_commits == 200:
-                        mail.send_mail_to_admins("nvdirienzo@gmail.com", "UB Hacking 100th Commit", "%s (%s) deserves a prize for the 200th commit tonight." % (author_name, author_email))
+                        mail.send_mail_to_admins("nvdirienzo@gmail.com", "UB Hacking 200th Commit", "%s (%s) deserves a prize for the 200th commit tonight." % (author_name, author_email))
                 elif global_commits == 250:
-                        mail.send_mail_to_admins("nvdirienzo@gmail.com", "UB Hacking 100th Commit", "%s (%s) deserves a prize for the 250th commit tonight." % (author_name, author_email))
+                        mail.send_mail_to_admins("nvdirienzo@gmail.com", "UB Hacking 250th Commit", "%s (%s) deserves a prize for the 250th commit tonight." % (author_name, author_email))
                 elif global_commits == 500:
-                        mail.send_mail_to_admins("nvdirienzo@gmail.com", "UB Hacking 100th Commit", "%s (%s) deserves a prize for the 500th commit tonight." % (author_name, author_email))
+                        mail.send_mail_to_admins("nvdirienzo@gmail.com", "UB Hacking 500th Commit", "%s (%s) deserves a prize for the 500th commit tonight." % (author_name, author_email))
                 elif global_commits == 750:
-                        mail.send_mail_to_admins("nvdirienzo@gmail.com", "UB Hacking 100th Commit", "%s (%s) deserves a prize for the 750th commit tonight." % (author_name, author_email))
+                        mail.send_mail_to_admins("nvdirienzo@gmail.com", "UB Hacking 750th Commit", "%s (%s) deserves a prize for the 750th commit tonight." % (author_name, author_email))
                 elif global_commits == 1000:
-                        mail.send_mail_to_admins("nvdirienzo@gmail.com", "UB Hacking 100th Commit", "%s (%s) deserves a prize for the 1000th commit tonight." % (author_name, author_email))
+                        mail.send_mail_to_admins("nvdirienzo@gmail.com", "UB Hacking 1000th Commit", "%s (%s) deserves a prize for the 1000th commit tonight." % (author_name, author_email))
 
 class MetricWorker(webapp.RequestHandler):
         def post(self):
