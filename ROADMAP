@@ -1,0 +1,12 @@
+Where we are:
+    Metrics measured on GitHub commits
+        Number of commits per person, per repo, and total
+        Number of curses per person, per repo, and total
+
+What needs to be fixed:
+    Email notifications when a certain threshold of commits is reached
+
+Where we plan on going:
+    More statistics of the commits
+    Real-time graph on the front end
+
