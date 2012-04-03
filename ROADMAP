@@ -5,6 +5,7 @@ Where we are:
 
 What needs to be fixed:
     Email notifications when a certain threshold of commits is reached
+    The mysterious commit-counter flip images bug
 
 Where we plan on going:
     More statistics of the commits
