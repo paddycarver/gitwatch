@@ -1,4 +1,4 @@
-gitwatch is a real-time git commit tracker, released under the MIT License. It was hacked together for UB Hacking 2012 by Paddy Foran (@paddyforan) and Nick DiRienzo (@nickdirienzo), and it's still under development. 
+gitwatch is a real-time git commit tracker, released under the MIT License. It was hacked together for UB Hacking 2012 by Paddy Foran and Nick DiRienzo, and it's still under development. 
 
 Feel free to use it for your hackathon. All you have to do is create a new App Engine task, make a few modifications (i.e. change the admin email in AwardsWorker), and you're ready to deploy.
 
